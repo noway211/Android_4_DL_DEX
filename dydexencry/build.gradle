@@ -1,0 +1,60 @@
+apply plugin: 'eu.appsatori.fatjar'
+
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+}
+processResources {
+    from('resource/jni') {
+        into "resource/jni"
+    }
+    from('resource/petershell.dex') {
+        into "resource"
+    }
+    includeEmptyDirs = false
+}
+gradle.taskGraph.whenReady {
+    fatJar {
+        manifest {
+            attributes("Main-Class": "com.peter.source.dydex.encry.MainClass")
+        }
+    }
+
+
+}
+task cleanbuild(){
+    if (getBuildDir().exists()){
+        println "============clean build dir "+getBuildDir().absolutePath
+        delete getBuildDir().absolutePath
+    }
+}
+
+//
+task copyjar(dependsOn:[':dydexshell:copyshellresource','fatJar']) {
+    doLast {
+        def rootProjectpath = getRootDir().absolutePath
+        def fileName = "dydexencry.jar"
+        def fromFile = rootProjectpath + "\\dydexencry\\build\\libs\\" + fileName
+        def intoFile = rootProjectpath + "\\pythonlaunch\\src\\main\\python"
+        // copy --> rename
+        println("=====================build.copyjar begin.=========================" + new File(fromFile).exists())
+        println(new File(fromFile).absolutePath)
+        copy {
+            from fromFile
+            into intoFile
+            rename {
+                "petershell.jar"
+            }
+        }
+        println("=====================build.copyjar end.=========================" + new File(intoFile + "\\petershell.jar").exists())
+        println(new File(intoFile + "\\petershell.jar").absolutePath)
+    }
+}
+
+dependencies {
+    //compile fileTree(dir: 'libs', include: ['*.jar'])
+   // compile project(':dydexshell')
+}
